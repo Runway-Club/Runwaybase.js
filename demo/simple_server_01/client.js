@@ -15,16 +15,24 @@ app.realtime.db
     console.log(data);
   });
 
-// setInterval(() => {
-//   app.realtime.db
-//     .collection("users")
-//     .doc(Date.now())
-//     .create({
-//       name: "Teoflio",
-//       yob: 1998,
-//     })
-//     .then((r) => {
-//       console.log(r);
-//     })
-//     .catch((err) => console.error(err));
-// }, 1000);
+app.realtime.db
+  .collection("users/profiles")
+  .docs()
+  .subscribe((data) => {
+    console.log(data);
+  });
+
+setInterval(() => {
+  app.realtime.db
+    .collection("users")
+    .collection("profiles")
+    .doc(Date.now())
+    .create({
+      name: "Teoflio",
+      yob: 1998,
+    })
+    .then((r) => {
+      console.log(r);
+    })
+    .catch((err) => console.error(err));
+}, 1000);
