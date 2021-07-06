@@ -13,7 +13,7 @@ export class Collection implements DataCollection {
     protected _subCollections: Collection[] = [];
     protected _documents: DataDocument[] = [];
 
-    constructor(protected driver: IDataDriver, protected notifier: INotifier,
+    constructor(protected driver: IDataDriver, protected notifier: INotifier, protected path: string,
         parentId: string, id: string, name: string) {
         this.parentId = parentId;
         this.id = id;
@@ -46,7 +46,7 @@ export class Collection implements DataCollection {
         if (!result.isError) {
             if (result.subCollections != undefined) {
                 this._subCollections = result.subCollections.map(
-                    (c) => new Collection(this.driver, this.notifier, this.id, c.id, c.name));
+                    (c) => new Collection(this.driver, this.notifier, this.path + "/" + c.name, this.id, c.id, c.name));
             }
         }
         /**
@@ -67,13 +67,13 @@ export class Collection implements DataCollection {
             let result = await this.driver.createCollection({
                 id: collectionId,
                 name: name,
-                parentId: this.id
+                parentId: this.id,
             });
             if (result.isError) {
                 return new Error(result.error);
             }
-            this._subCollections.push(new Collection(this.driver, this.notifier, this.id, collectionId, name));
-            this.notifier.notify(ChangeSubject.Collection, ChangeType.Added, { collectionId: collectionId });
+            this._subCollections.push(new Collection(this.driver, this.notifier, this.path + "/" + name, this.id, collectionId, name));
+            this.notifier.notify(ChangeSubject.Collection, ChangeType.Added, { collectionId: collectionId, path: this.path });
         }
     }
 
@@ -88,7 +88,7 @@ export class Collection implements DataCollection {
             return new Error(result.error);
         }
         this._subCollections.splice(deleted, 1);
-        this.notifier.notify(ChangeSubject.Collection, ChangeType.Deleted, { collectionId: id });
+        this.notifier.notify(ChangeSubject.Collection, ChangeType.Deleted, { collectionId: id, path: this.path });
     }
 
     public async createDocument(value: any, key?: string) {
@@ -111,7 +111,7 @@ export class Collection implements DataCollection {
                 value: value,
                 key: key ?? docId
             });
-            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value });
+            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value, path: this.path });
         } else {
             result = await this.driver.updateDocument(this._documents[dupId].id, value);
             if (result.isError) {
@@ -120,6 +120,7 @@ export class Collection implements DataCollection {
             this._documents[dupId].value = value;
             this.notifier.notify(ChangeSubject.Document, ChangeType.Updated, {
                 collectionId: this.id,
+                path: this.path,
                 key: key,
                 value: value
             });
@@ -140,12 +141,12 @@ export class Collection implements DataCollection {
                 return new Error(result.error);
             }
             this._documents.push(newDoc)
-            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value });
+            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value, path: this.path });
         }
         else {
             await this.driver.updateDocument(this.id, value);
             this._documents[checkKey].value = value;
-            this.notifier.notify(ChangeSubject.Document, ChangeType.Updated, { collectionId: this.id, key: key, value: value })
+            this.notifier.notify(ChangeSubject.Document, ChangeType.Updated, { collectionId: this.id, key: key, value: value, path: this.path })
         }
     }
     public async deleteDocument(key: string) {
@@ -160,7 +161,8 @@ export class Collection implements DataCollection {
         this._documents.splice(checkId, 1);
         this.notifier.notify(ChangeSubject.Document, ChangeType.Deleted, {
             collectionId: this.id,
-            key: key
+            key: key,
+            path: this.path
         });
 
     }

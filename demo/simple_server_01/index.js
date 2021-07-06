@@ -1,4 +1,4 @@
-const runwaybase = require("../../dist");
+const runwayClub = require("../../dist/");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -8,6 +8,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 var server = require("http").Server(app);
+
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
@@ -15,15 +16,18 @@ const io = require("socket.io")(server, {
   },
 });
 
-let runwayApp = runwaybase.Runwaybase.App;
+let runwayApp = runwayClub.Core.Runwaybase.App;
 
-let driver = new runwaybase.MemoryDataDriver();
+let driver = new runwayClub.Drivers.MemoryDataDriver();
+
 runwayApp.initialize(io, app, driver);
 
-server.listen(8989, () => {
-  console.log("IO is running on 8989");
+const ioPort = 8989;
+server.listen(ioPort, () => {
+  console.log(`IO is running on ${ioPort}`);
 });
 
-app.listen(9898, () => {
-  console.log("Server is running on 8080");
+const serverPort = 9898;
+app.listen(serverPort, () => {
+  console.log(`Server is running on ${serverPort}`);
 });

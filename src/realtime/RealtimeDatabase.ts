@@ -8,7 +8,7 @@ export class RealtimeDatabase {
     protected _root!: Collection;
 
     constructor(protected driver: IDataDriver, protected notifier: INotifier) {
-        this._root = new Collection(driver, notifier, "", "ROOT", "");
+        this._root = new Collection(driver, notifier, "", "", "ROOT", "");
         this._root.fetch(true);
     }
 
@@ -17,6 +17,9 @@ export class RealtimeDatabase {
         let current = this._root;
         for (let collectionName of collectionNames) {
             await current.fetch();
+            if (collectionName == "") {
+                continue;
+            }
             let colId = current.subCollections.findIndex((c) => c.name == collectionName);
             if (colId == -1) {
                 let error = await current.createSubcollection(collectionName);
@@ -44,7 +47,27 @@ export class RealtimeDatabase {
         }
         switch (query.command) {
             case QueryCommand.Get:
+                // Load documents lazily
+                // if (query.filters == undefined || query.filters.length == 0) {
+                //     await des.fetch(true);
+                // }
+                if (type == 'collection') {
+                    let collection = await this.collectionTravel(query.collectionPath);
+                    if (collection instanceof Collection) {
+                        return {
+                            affected: 1,
+                            collections: [collection],
+                            isError: false
+                        }
+                    } else {
+                        return {
+                            affected: 0,
+                            isError: true,
+                            error: collection.message
+                        }
+                    }
 
+                }
                 return {
                     affected: des.documents.length + des.subCollections.length,
                     collections: des.subCollections,

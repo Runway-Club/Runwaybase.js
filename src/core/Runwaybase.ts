@@ -55,7 +55,6 @@ export class Runwaybase {
          */
         this._io.on("connection", (socket: Socket) => {
             this._notifier.onChange().subscribe(((snapshot: ChangeSnapshot) => {
-                console.log("On Event");
                 console.log(snapshot);
                 socket.emit("runwaybase-change", JSON.stringify(snapshot));
             }).bind(this));
