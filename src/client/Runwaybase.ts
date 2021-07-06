@@ -6,7 +6,6 @@ import { RealtimeDatabase } from "./RealtimeDatabase";
 
 export class Runwaybase {
     protected _config!: AppConfig;
-    private _socket!: Socket;
 
     private _db!: RealtimeDatabase;
 
@@ -14,7 +13,6 @@ export class Runwaybase {
 
     public initialize(config: AppConfig) {
         this._config = config;
-        //this._socket = io(this._config.ioEndpoint);
         let socket = io(this._config.ioEndpoint);
         this._db = new RealtimeDatabase(config, socket);
         this._db.init();

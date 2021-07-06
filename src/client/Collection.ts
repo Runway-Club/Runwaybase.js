@@ -6,7 +6,6 @@ import { v4 } from 'uuid';
 import { Document } from "./Document";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { map } from 'rxjs/operators';
-import { join } from 'path';
 
 export enum DataEvent {
     Added,
@@ -20,10 +19,32 @@ export class Collection {
         return this._query;
     }
 
+    private join(...paths: string[]): string {
+        let current = "";
+        let result = "";
+        for (let i = 0; i < paths.length; i++) {
+            current = paths[i];
+            if (current[0] == "/") {
+                current = current.substring(1);
+            }
+            if (current[current.length - 1] == "/") {
+                current = current.substring(0, current.length - 1);
+            }
+            result += current + "/";
+        }
+        if (result[0] == "/") {
+            result = result.substring(1);
+        }
+        if (result[result.length - 1] == "/") {
+            result = result.substring(0, result.length - 1);
+        }
+        return result;
+    }
+
     public collection(collectionPath: string): Collection {
         let query = {
             ...this._query,
-            collectionPath: join(this._query.collectionPath, collectionPath)
+            collectionPath: this.join(this._query.collectionPath, collectionPath)
         };
         if (query.collectionPath[0] == "/") {
             query.collectionPath = query.collectionPath.substring(1);
@@ -46,7 +67,7 @@ export class Collection {
 
     public docs(): Observable<DataDocument[]> {
 
-        let docsSubject: Subject<DataDocument[]> = new Subject<DataDocument[]>();// = new BehaviorSubject<DataDocument[]>();
+        let docsSubject: Subject<DataDocument[]> = new Subject<DataDocument[]>();
 
 
         axios.post(this._config.restEndpoint, {

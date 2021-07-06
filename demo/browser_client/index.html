@@ -1,0 +1,36 @@
+<html>
+
+<head>
+</head>
+
+<body>
+    <script src="https://unpkg.com/@runwaysocialclub/runwaybase@latest/dist/runwaybase-bundle.js">
+    </script>
+    <script>
+        console.log(runwaybase);
+        let app = new runwaybase.Client.Runwaybase();
+
+        app.initialize({
+            restEndpoint: "http://localhost:9898/runwaybase/realtime",
+            ioEndpoint: "http://localhost:8989",
+        });
+
+        app.realtime.db
+            .collection("users/profiles")
+            .docs()
+            .subscribe((data) => {
+                console.log(data);
+            });
+
+        setInterval(() => {
+            app.realtime.db.collection("users/profiles")
+                .doc(Date.now())
+                .create({
+                    name: "Teoflio",
+                    yob: 1998
+                });
+        }, 3000);
+    </script>
+</body>
+
+</html>
