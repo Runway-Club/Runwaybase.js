@@ -14,7 +14,7 @@ export enum DataEvent {
 }
 
 export class Collection {
-    constructor(protected _config: AppConfig, protected _subject: Subject<ChangeSnapshot>, protected _path: string, protected _query: QueryModel,) { }
+    constructor(protected _config: AppConfig, protected _subject: Subject<ChangeSnapshot>, protected _path: string, protected _query: QueryModel) { }
     public get query() {
         return this._query;
     }
@@ -49,7 +49,6 @@ export class Collection {
         if (query.collectionPath[0] == "/") {
             query.collectionPath = query.collectionPath.substring(1);
         }
-        console.log(query.collectionPath);
         return new Collection(this._config, this._subject,
             collectionPath,
             query
@@ -58,11 +57,11 @@ export class Collection {
 
 
 
-    public doc(key: string = ""): Document {
+    public doc(key?: string): Document {
         if (this._path[0] == "/") {
             this._path = this._path.substring(1);
         }
-        return new Document(this._config, this._subject, this._query, key, this._path);
+        return new Document(this._config, this._subject, this._query, key ?? "", this._path);
     }
 
     public docs(): Observable<DataDocument[]> {
@@ -76,7 +75,7 @@ export class Collection {
         }).then((res) => {
             docsSubject.next((<QueryResult>res.data).docs ?? []);
         }).catch((err) => {
-            console.error(err);
+            // console.error(err);
         });
 
 
@@ -89,7 +88,6 @@ export class Collection {
             if (v.change.path[0] == "/") {
                 v.change.path = v.change.path.substring(1);
             }
-            console.log(v.change.path + " == " + this._path);
             if (v.change.path == this._path) {
                 let res = await axios.post(this._config.restEndpoint, {
                     command: QueryCommand.Get,
@@ -107,7 +105,9 @@ export class Collection {
         switch (event) {
             case DataEvent.Added:
                 this._subject.subscribe((v) => {
-                    console.log(v.change.path + " == " + this._path);
+                    if (v.change == undefined) {
+                        return;
+                    }
                     if (v.subject == ChangeSubject.Document && v.type == ChangeType.Added && v.change.path == this._path) {
                         docSubject.next(v.change);
                     }
@@ -116,6 +116,9 @@ export class Collection {
 
             case DataEvent.Updated:
                 this._subject.subscribe((v) => {
+                    if (v.change == undefined) {
+                        return;
+                    }
                     if (v.subject == ChangeSubject.Document && v.type == ChangeType.Updated && v.change.path == this._path) {
                         docSubject.next(v.change);
                     }
@@ -124,6 +127,9 @@ export class Collection {
 
             case DataEvent.Deleted:
                 this._subject.subscribe((v) => {
+                    if (v.change == undefined) {
+                        return;
+                    }
                     if (v.subject == ChangeSubject.Document && v.type == ChangeType.Deleted && v.change.path == this._path) {
                         docSubject.next(v.change);
                     }
@@ -131,6 +137,26 @@ export class Collection {
                 break;
         }
         return docSubject.asObservable();
+    }
+
+    public async deleteSubcollection(name: string): Promise<QueryResult> {
+        console.log(name);
+        let result = await axios.post(this._config.restEndpoint, {
+            ...this._query,
+            command: QueryCommand.Delete,
+            params: {
+                name: name,
+                type: 'collection'
+            }
+        }, {
+            headers: {
+                "Content-Type": 'application/json'
+            }
+        });
+        if (result.status != 200) {
+            throw result.statusText
+        }
+        return <QueryResult>result.data;
     }
 
 }

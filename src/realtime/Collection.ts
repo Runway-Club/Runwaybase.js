@@ -78,17 +78,18 @@ export class Collection implements DataCollection {
     }
 
 
-    public async deleteSubcollection(id: string) {
-        let deleted = this._subCollections.findIndex((c) => c.id == id);
+    public async deleteSubcollection(name: string) {
+        let deleted = this._subCollections.findIndex((c) => c.name == name);
         if (deleted == -1) {
             return;
         }
-        let result = await this.driver.deleteCollection(id);
+        let deletedId = this._subCollections[deleted].id;
+        let result = await this.driver.deleteCollection(deletedId);
         if (result.isError) {
             return new Error(result.error);
         }
         this._subCollections.splice(deleted, 1);
-        this.notifier.notify(ChangeSubject.Collection, ChangeType.Deleted, { collectionId: id, path: this.path });
+        this.notifier.notify(ChangeSubject.Collection, ChangeType.Deleted, { collectionId: deletedId, path: this.path });
     }
 
     public async createDocument(value: any, key?: string) {
@@ -111,7 +112,7 @@ export class Collection implements DataCollection {
                 value: value,
                 key: key ?? docId
             });
-            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value, path: this.path });
+            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: key ?? docId, value: value, path: this.path });
         } else {
             result = await this.driver.updateDocument(this._documents[dupId].id, value);
             if (result.isError) {
@@ -141,7 +142,7 @@ export class Collection implements DataCollection {
                 return new Error(result.error);
             }
             this._documents.push(newDoc)
-            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: docId, value: value, path: this.path });
+            this.notifier.notify(ChangeSubject.Document, ChangeType.Added, { collectionId: this.id, key: key ?? docId, value: value, path: this.path });
         }
         else {
             await this.driver.updateDocument(this.id, value);

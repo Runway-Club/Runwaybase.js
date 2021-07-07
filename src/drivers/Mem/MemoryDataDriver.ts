@@ -19,7 +19,6 @@ export class MemoryDataDriver implements IDataDriver {
     }
 
     connect(): Promise<void> {
-        console.log("Connected");
         this._collections = [];
         this._documents = [];
         return Promise.resolve();

@@ -92,7 +92,8 @@ describe("Realtime Database tests", () => {
         let users = await db?.collectionTravel("profiles");
         if (users instanceof Collection) {
             expect(users.documents.length).to.be.equal(1);
-            expect(users.documents[0].value['name']).to.be.equal("Teoflio")
+            expect(users.documents[0].value['name']).to.be.equal("Teoflio");
+            expect(users.documents[0].key).to.be.equal("profile-001");
         }
     });
 
@@ -114,6 +115,7 @@ describe("Realtime Database tests", () => {
         let users = await db?.collectionTravel("users");
         if (users instanceof Collection) {
             expect(users.documents[0].value['gpa']).to.be.equal(3.99)
+            expect(users.documents[0].key).to.be.equal("001");
         }
     });
 

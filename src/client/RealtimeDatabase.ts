@@ -21,4 +21,6 @@ export class RealtimeDatabase {
     public get db(): Collection {
         return this._root;
     }
+
+
 }

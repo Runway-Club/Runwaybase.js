@@ -9,17 +9,25 @@ export class Runwaybase {
 
     private _db!: RealtimeDatabase;
 
+    private socket!: Socket;
+
     constructor() { }
 
     public initialize(config: AppConfig) {
         this._config = config;
         let socket = io(this._config.ioEndpoint);
+
         this._db = new RealtimeDatabase(config, socket);
         this._db.init();
+        this.socket = socket;
     }
 
     public get realtime() {
         return this._db;
+    }
+
+    public dispose(): void {
+        this.socket?.close();
     }
 
 }

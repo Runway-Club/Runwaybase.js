@@ -13,7 +13,7 @@ export class Document {
                 ...this._query,
                 command: QueryCommand.Create,
                 params: {
-                    key: this.key == "" ? v4() : this.key,
+                    key: (this.key == "" ? v4() : this.key),
                     value: data
                 }
             }, {
@@ -39,7 +39,7 @@ export class Document {
             let result = await axios.post(this._config.restEndpoint, {
                 ...this._query,
                 command: QueryCommand.Update,
-                param: {
+                params: {
                     key: this.key,
                     value: data
                 }

@@ -111,7 +111,7 @@ export class RealtimeDatabase {
 
                 if (type == 'collection') {
                     result = await des.deleteSubcollection(name ?? "");
-                    des.fetch();
+                    des.fetch(true);
                     return {
                         affected: (result instanceof Error) ? 0 : 1,
                         isError: false

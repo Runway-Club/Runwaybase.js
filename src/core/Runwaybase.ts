@@ -59,6 +59,7 @@ export class Runwaybase {
                 socket.emit("runwaybase-change", JSON.stringify(snapshot));
             }).bind(this));
         });
+
     }
 
 }
