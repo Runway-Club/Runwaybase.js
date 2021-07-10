@@ -18,7 +18,7 @@ const io = require("socket.io")(server, {
 
 let runwayApp = runwayClub.Core.Runwaybase.App;
 
-let driver = new runwayClub.Drivers.MemoryDataDriver();
+let driver = new runwayClub.Drivers.SQLiteDriver("./test.sqlite");
 
 runwayApp.initialize(io, app, driver);
 

@@ -2,23 +2,24 @@ import { Observable } from "rxjs";
 import { ChangePayload } from "./ChangePayload";
 
 export enum ChangeSubject {
-    Collection,
-    Document
+  Collection,
+  Document,
 }
 
 export enum ChangeType {
-    Added,
-    Updated,
-    Deleted
+  Added,
+  Updated,
+  Deleted,
+  Query,
 }
 
 export interface ChangeSnapshot {
-    subject: ChangeSubject,
-    type: ChangeType,
-    change: ChangePayload
+  subject: ChangeSubject;
+  type: ChangeType;
+  change: ChangePayload;
 }
 
 export interface INotifier {
-    notify(subject: ChangeSubject, type: ChangeType, change: ChangePayload): void;
-    onChange(): Observable<ChangeSnapshot>;
+  notify(subject: ChangeSubject, type: ChangeType, change: ChangePayload): void;
+  onChange(): Observable<ChangeSnapshot>;
 }

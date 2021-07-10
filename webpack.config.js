@@ -1,6 +1,6 @@
 const path = require("path");
 module.exports = {
-  entry: "./src/index.ts",
+  entry: "./src/index.client.ts",
   output: {
     filename: "runwaybase-bundle.js",
     path: path.resolve(__dirname, "dist"),
@@ -12,6 +12,11 @@ module.exports = {
     extensions: [".webpack.js", ".web.js", ".ts", ".js"],
   },
   module: {
-    rules: [{ test: /\.ts$/, loader: "ts-loader" }],
+    rules: [
+      {
+        test: /\.ts$/,
+        loader: "ts-loader",
+      },
+    ],
   },
 };

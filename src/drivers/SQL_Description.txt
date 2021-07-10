@@ -1,0 +1,137 @@
+SQL Description
+   _______
+__|Diagram|_________________________________________________________________________________________________________
+ __________________ 
+|Collection        |
+|------------------|
+|id string(unique) |------------|
+|parentId string PK|            |
+|name string     PK|            |
+|__________________|            |
+                                |
+                                |                   ______________________
+                                |                  |Document              |
+                                |                  |----------------------|
+                                |        |---------|id string  (unique)   |
+                                |--------+-------->|parentId string PK,FK |
+                                         |         |key  string     PK    |
+                                         |         |______________________|
+                                         |
+              _____________________      |
+             |DocumentValue        |     |
+             |---------------------|     |
+             |id string            |     |
+             |docId string   PK,FK |<----|
+             |path  string   PK    |
+             |vType string         | // Value types: string, number, boolean, array, object 
+             |vString string       | // For string value in any types
+             |_____________________|
+
+____________________________________________________________________________________________________________________
+   ________
+__|Examples|________________________________________________________________________________________________________
+1. Data Tree:
+{
+    name:"ROOT",
+    collections:[
+        {
+            name:"users",
+            documents:[
+                {
+                    key:"001",
+                    value:{
+                        name:"Teoflio",
+                        address:{
+                            no:4,
+                            street:"4 - 6 Bui Hien, Phước Nguyên, CA"
+                        }
+                        enrolled:true
+                        friends:["002","003"]
+                    }
+                }
+            ]
+        }
+    ]
+    documents:[]
+}
+
+To SQL =>
+
+Collection table
+ ___________________________________________
+|id         |parentId       |name           |
+---------------------------------------------
+|ROOT       |''             |''             |
+---------------------------------------------
+|users      |ROOT           |users          |
+---------------------------------------------
+
+Document table
+ ___________________________________________
+|id         |parentId       |key            |
+---------------------------------------------
+|doc1       |users          |001            |
+---------------------------------------------
+
+DocumentValue
+ ___________________________________________________________________________
+|id         |docId          |path           |vType          |vString        |
+-----------------------------------------------------------------------------
+|1          |doc1           |name           |string         |Teoflio        |
+-----------------------------------------------------------------------------
+|2          |doc1           |address        |object         |               |
+-----------------------------------------------------------------------------
+|3          |doc1           |address.no     |number         |4              |
+-----------------------------------------------------------------------------
+|4          |doc1           |address.street |string         |4 - 6 Bui Hien |
+-----------------------------------------------------------------------------
+|5          |doc1           |enrolled       |boolean        |true           |
+-----------------------------------------------------------------------------
+|6          |doc1           |friends        |array          |['002','003']  |
+-----------------------------------------------------------------------------
+
+Query: Create doc:
+collectionPath: "users/accounts" add Document("001",{aid:"123XXX", bank:"TPBank"})
+B1: For $path in collectionPath:
+        INSERT INTO Collection VALUES (<AUTO ID>, <PARENT ID>, $path);
+
+B2: 
+    $parentId = ''
+    For $path in collectionPath
+        $current <- SELECT id FROM Collection WHERE parentId = $parentId AND name = $path
+        $parentId = $current.id
+
+    $doc <- SELECT * FROM Document WHERE parentId = $parentId AND key = $key
+    if $doc inexisted
+        INSERT INTO Document ...
+    For $obj in value
+        INSERT INTO DocumentValue VALUES (<AUTO ID>, $doc.id, $obj.fieldName, $valueType)
+        
+// Postgre Dùng Cast với định kiểu số truyền vào
+
+
+//Script SQLite3
+______________________________________________________________________________________________________________________________________________________
+CREATE TABLE IF NOT EXISTS Collection (id TEXT, parentId NVARCHAR(255) , name NVARCHAR(255), PRIMARY KEY(id,parentId,name));
+CREATE TABLE IF NOT EXISTS 
+        Document (id TEXT, parentId NVARCHAR(255) , docKey NVARCHAR(255), 
+        PRIMARY KEY(id,parentId,docKey));
+CREATE TABLE IF NOT EXISTS 
+        DocumentValue (id TEXT, docId NVARCHAR(255) , path NVARCHAR(255), vType NVARCHAR(10), vString TEXT, 
+        PRIMARY KEY(id,docId,path));
+INSERT INTO Collection VALUES ("ROOT",'','');
+INSERT INTO Collection VALUES ("USERS",'ROOT','USERS');
+INSERT INTO Collection VALUES ("U02",'USERS','PROFILES');
+INSERT INTO Collection VALUES ("U03",'USERS','ACCOUNTS');
+INSERT INTO Document VALUES ('doc1','PROFILES','001');
+INSERT INTO Document VALUES ('doc2','PROFILES','002');
+INSERT INTO Document VALUES ('doc3','ACCOUNTS','003');
+INSERT INTO Document VALUES ('doc4','ACCOUNTS','004');
+INSERT INTO DocumentValue VALUES ('1', 'doc1', 'name', 'string', 'Teoflio');
+INSERT INTO DocumentValue VALUES ('2', 'doc1', 'address', 'object', '{No: 4-6, Street: Bui Hien}');
+INSERT INTO DocumentValue VALUES ('1', 'doc2', 'name', 'string', 'Cuden');
+INSERT INTO DocumentValue VALUES ('2', 'doc2', 'address', 'object', '{No: 1, Street: 19}');
+INSERT INTO DocumentValue VALUES ('1', 'doc3', 'name', 'string', 'VHGK');
+INSERT INTO DocumentValue VALUES ('2', 'doc3', 'address', 'object', '{No: 9999, Street: Quang Trung}');
+//
+______________________________________________________________________________________________________________________________________________________
