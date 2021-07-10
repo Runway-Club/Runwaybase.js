@@ -260,7 +260,7 @@ export class MemoryDataDriver implements IDataDriver {
             resultDocs.sort((d1, d2) => {
                 let v1 = this.getValueFromObject(d1.id, d1.value, query.orderBy?.field ?? "");
                 let v2 = this.getValueFromObject(d2.id, d2.value, query.orderBy?.field ?? "");
-                let f = (query.orderBy?.type == QueryOrder.Ascending) ? 1 : -1;
+                let f = (query.orderBy?.type == QueryOrder.ASC) ? 1 : -1;
                 if (v1 == v2) {
                     return 0;
                 }
