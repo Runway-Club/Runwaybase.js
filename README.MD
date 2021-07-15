@@ -1,4 +1,4 @@
-# Runwaybase - Powered up every database
+# Runwaybase - Powered up every databases
 
 ## Makes every databases run as Firebase
 
